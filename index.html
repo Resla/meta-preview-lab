@@ -30,14 +30,29 @@
         <h2>Your metadata</h2>
 
         <div class="field">
-          <label for="pageTitle">Page title</label>
-          <input type="text" id="pageTitle" placeholder="My Awesome Project — Built in 2 Hours" maxlength="120">
-          <span id="titleCount" class="char-count">0 / 60 recommended</span>
+          <label for="pageUrl">URL</label>
+          <div class="fetch-row">
+            <input type="url" id="pageUrl" placeholder="https://yourname.github.io/my-project/">
+            <button id="fetchBtn" class="btn btn-fetch" type="button">Fetch</button>
+          </div>
+          <p id="fetchStatus" class="fetch-status" aria-live="polite"></p>
+          <p class="field-hint">Fetch reads live og: tags from the page and fills the fields below.</p>
+        </div>
+
+        <div class="audit-panel">
+          <div class="audit-header">
+            <h3>Metadata audit</h3>
+            <span id="auditSummary" class="audit-summary"></span>
+          </div>
+          <ul id="auditList" class="audit-list">
+            <li class="audit-empty">Fetch a URL to audit its live metadata, or fill in the fields to check your draft.</li>
+          </ul>
         </div>
 
         <div class="field">
-          <label for="pageUrl">URL</label>
-          <input type="url" id="pageUrl" placeholder="https://yourname.github.io/my-project/">
+          <label for="pageTitle">Page title</label>
+          <input type="text" id="pageTitle" placeholder="My Awesome Project — Built in 2 Hours" maxlength="120">
+          <span id="titleCount" class="char-count">0 / 60 recommended</span>
         </div>
 
         <div class="field">
@@ -114,12 +129,13 @@
     </main>
 
     <footer class="footer">
-      <p>No data leaves your browser. Paste, preview, share with confidence.</p>
+      <p>Fetch uses a CORS proxy to read public pages. Edits stay in your browser.</p>
     </footer>
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <script src="js/fetch-meta.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

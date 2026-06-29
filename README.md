@@ -6,13 +6,24 @@ Perfect for polishing READMEs, portfolio pages, and blog posts before posting on
 
 ## Features
 
+- **Fetch from URL** — paste a live link and pull real `og:*` tags from the page
+- **Metadata audit** — see what's found, missing, or too long (title, description, image, Twitter card)
 - **Live Google search snippet** preview with title, URL breadcrumb, and description
 - **X / Twitter card** preview with large-image layout
 - **LinkedIn link preview** mockup
 - **Open Graph tag generator** — copy-paste ready `<meta>` tags
 - **Character counters** with SEO-friendly limits (60 / 160)
 - **Dark & light mode**
-- **100% client-side** — nothing is sent to a server
+
+## How fetch works
+
+Browsers can't read other websites directly (CORS). The **Fetch** button uses a public CORS proxy to download the page HTML, then parses:
+
+- `og:title`, `og:description`, `og:image`, `og:url`
+- `twitter:*` tags as fallbacks
+- `<title>` and `meta name="description"` as last resort
+
+Try it with `https://resla.github.io/focus-desk/` after you've added OG tags.
 
 ## Live demo
 

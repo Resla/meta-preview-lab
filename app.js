@@ -8,6 +8,10 @@ const titleCount = document.getElementById("titleCount");
 const descCount = document.getElementById("descCount");
 const ogSnippet = document.getElementById("ogSnippet");
 const copyOg = document.getElementById("copyOg");
+const fetchBtn = document.getElementById("fetchBtn");
+const fetchStatus = document.getElementById("fetchStatus");
+const auditList = document.getElementById("auditList");
+const auditSummary = document.getElementById("auditSummary");
 const themeToggle = document.getElementById("themeToggle");
 const toast = document.getElementById("toast");
 
@@ -20,6 +24,7 @@ const DEFAULTS = {
 };
 
 const inputs = [pageTitle, pageUrl, pageDesc, imageUrl];
+let lastFetchSource = null;
 
 function init() {
   loadTheme();
@@ -29,17 +34,27 @@ function init() {
 }
 
 function prefillDemo() {
-  pageTitle.value = "Focus Desk — Minimal Pomodoro Timer";
   pageUrl.value = "https://resla.github.io/focus-desk/";
-  pageDesc.value =
-    "A beautiful Pomodoro timer with task labels, custom durations, and browser notifications. Built with vanilla JS.";
-  imageUrl.value = "";
 }
 
 function bindEvents() {
-  inputs.forEach((input) => input.addEventListener("input", updateAll));
+  inputs.forEach((input) => input.addEventListener("input", onInputChange));
   copyOg.addEventListener("click", copyOgTags);
+  fetchBtn.addEventListener("click", handleFetch);
   themeToggle.addEventListener("click", toggleTheme);
+
+  pageUrl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleFetch();
+    }
+  });
+}
+
+function onInputChange() {
+  lastFetchSource = null;
+  updateFetchStatus("");
+  updateAll();
 }
 
 function updateAll() {
@@ -54,6 +69,87 @@ function updateAll() {
   updateX(title, desc, domain, image);
   updateLinkedIn(title, domain, image);
   updateOgSnippet(title, desc, url, image);
+  renderAudit(buildAuditFromForm(pageTitle.value.trim(), pageDesc.value.trim(), image, url));
+}
+
+async function handleFetch() {
+  const url = pageUrl.value.trim();
+
+  if (!url) {
+    showToast("Enter a URL first");
+    pageUrl.focus();
+    return;
+  }
+
+  setFetchLoading(true);
+  updateFetchStatus("Fetching live metadata…");
+
+  try {
+    const metadata = await fetchMetadata(url);
+
+    pageTitle.value = metadata.title;
+    pageDesc.value = metadata.description;
+    pageUrl.value = metadata.url;
+    imageUrl.value = metadata.image;
+
+    lastFetchSource = metadata;
+    updateFetchStatus(`Fetched from ${new URL(metadata.url).hostname}`);
+    renderAudit(buildAuditItems(metadata));
+    updateAll();
+    showToast("Live metadata loaded!");
+  } catch (error) {
+    updateFetchStatus("");
+    showToast(error.message || "Fetch failed");
+    renderAudit([]);
+    auditSummary.textContent = "Fetch failed — check the URL and try again";
+  } finally {
+    setFetchLoading(false);
+  }
+}
+
+function setFetchLoading(loading) {
+  fetchBtn.disabled = loading;
+  fetchBtn.textContent = loading ? "Fetching…" : "Fetch";
+}
+
+function updateFetchStatus(message) {
+  fetchStatus.textContent = message;
+}
+
+function renderAudit(items) {
+  if (!items.length) {
+    auditList.innerHTML = '<li class="audit-empty">Fetch a URL to audit its live metadata, or fill in the fields to check your draft.</li>';
+    auditSummary.textContent = "";
+    return;
+  }
+
+  const errors = items.filter((i) => i.level === "error").length;
+  const warns = items.filter((i) => i.level === "warn").length;
+  const oks = items.filter((i) => i.level === "ok").length;
+
+  if (lastFetchSource) {
+    auditSummary.textContent = `${oks} passed · ${warns} warnings · ${errors} missing`;
+  } else {
+    auditSummary.textContent = `Draft check — ${oks} ok · ${warns} warnings · ${errors} issues`;
+  }
+
+  auditList.innerHTML = items
+    .map((item) => {
+      const icon = item.level === "ok" ? "✓" : item.level === "warn" ? "!" : "✕";
+      const extra = item.extra
+        ? `<span class="audit-extra audit-${item.extra.level}">${escapeHtml(item.extra.text)}</span>`
+        : "";
+
+      return `<li class="audit-item audit-${item.level}">
+        <span class="audit-icon" aria-hidden="true">${icon}</span>
+        <div class="audit-body">
+          <span class="audit-tag">${escapeHtml(item.tag)}</span>
+          <span class="audit-message">${escapeHtml(item.message)}</span>
+          ${extra}
+        </div>
+      </li>`;
+    })
+    .join("");
 }
 
 function parseUrl(urlString) {
@@ -61,9 +157,7 @@ function parseUrl(urlString) {
     const url = new URL(urlString);
     const domain = url.hostname.replace(/^www\./, "");
     const path = url.pathname.replace(/\/$/, "").split("/").filter(Boolean);
-    const breadcrumb = path.length
-      ? `${domain} › ${path.join(" › ")}`
-      : domain;
+    const breadcrumb = path.length ? `${domain} › ${path.join(" › ")}` : domain;
     return { domain, breadcrumb };
   } catch {
     return { domain: DEFAULTS.domain, breadcrumb: DEFAULTS.breadcrumb };
@@ -119,6 +213,7 @@ function setPreviewImage(platform, src) {
     img.hidden = true;
     img.classList.add("hidden");
     placeholder.hidden = false;
+    placeholder.textContent = platform === "x" ? "1200 × 630 image preview" : "Image preview";
     img.removeAttribute("src");
     return;
   }
@@ -171,6 +266,12 @@ function escapeAttr(str) {
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 async function copyOgTags() {

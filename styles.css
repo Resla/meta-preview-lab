@@ -255,6 +255,148 @@ body::before {
   padding: 0.35rem 0.7rem;
 }
 
+.btn-fetch {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-fetch:hover:not(:disabled) {
+  background: #5a7aeb;
+  border-color: #5a7aeb;
+  color: #fff;
+}
+
+.btn-fetch:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.fetch-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.fetch-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.fetch-status {
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-top: 0.35rem;
+  min-height: 1.1em;
+}
+
+.audit-panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.audit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.audit-header h3 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.audit-summary {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.audit-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.audit-empty {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.audit-item {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.audit-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.audit-ok .audit-icon {
+  background: rgba(64, 192, 87, 0.15);
+  color: #40c057;
+}
+
+.audit-warn .audit-icon {
+  background: rgba(255, 169, 77, 0.15);
+  color: #ffa94d;
+}
+
+.audit-error .audit-icon {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+}
+
+.audit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.audit-tag {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.audit-message {
+  color: var(--text);
+  word-break: break-word;
+}
+
+.audit-extra {
+  font-size: 0.6875rem;
+}
+
+.audit-extra.audit-ok { color: #40c057; }
+.audit-extra.audit-warn { color: #ffa94d; }
+.audit-extra.audit-error { color: #ff6b6b; }
+
 .og-snippet {
   font-family: var(--mono);
   font-size: 0.72rem;
