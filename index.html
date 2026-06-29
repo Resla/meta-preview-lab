@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Meta Preview Lab — see how your link looks on Google, X, and LinkedIn before you share.">
+  <title>Meta Preview Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <span class="brand-badge">MPL</span>
+        <div>
+          <h1>Meta Preview Lab</h1>
+          <p class="tagline">Preview your link before you share it</p>
+        </div>
+      </div>
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon">☾</span>
+      </button>
+    </header>
+
+    <main class="layout">
+      <section class="editor" aria-label="Link metadata editor">
+        <h2>Your metadata</h2>
+
+        <div class="field">
+          <label for="pageTitle">Page title</label>
+          <input type="text" id="pageTitle" placeholder="My Awesome Project — Built in 2 Hours" maxlength="120">
+          <span id="titleCount" class="char-count">0 / 60 recommended</span>
+        </div>
+
+        <div class="field">
+          <label for="pageUrl">URL</label>
+          <input type="url" id="pageUrl" placeholder="https://yourname.github.io/my-project/">
+        </div>
+
+        <div class="field">
+          <label for="pageDesc">Description</label>
+          <textarea id="pageDesc" rows="3" placeholder="A short description that makes people want to click." maxlength="300"></textarea>
+          <span id="descCount" class="char-count">0 / 160 recommended</span>
+        </div>
+
+        <div class="field">
+          <label for="imageUrl">Image URL <span class="optional">(optional)</span></label>
+          <input type="url" id="imageUrl" placeholder="https://example.com/preview.png">
+          <p class="field-hint">Used for X and LinkedIn card previews. 1200×630 works best.</p>
+        </div>
+
+        <div class="og-block">
+          <div class="og-header">
+            <h3>Open Graph tags</h3>
+            <button id="copyOg" class="btn btn-sm" type="button">Copy tags</button>
+          </div>
+          <pre id="ogSnippet" class="og-snippet" aria-live="polite"></pre>
+        </div>
+      </section>
+
+      <section class="previews" aria-label="Platform previews">
+        <h2>Live previews</h2>
+
+        <article class="preview-card" id="googlePreview">
+          <header class="preview-label">
+            <span class="platform-dot google"></span>
+            Google Search
+          </header>
+          <div class="google-result">
+            <p class="google-url" id="googleUrl">yourname.github.io › my-project</p>
+            <h3 class="google-title" id="googleTitle">Your page title appears here</h3>
+            <p class="google-desc" id="googleDesc">Your meta description shows as the snippet below the title in search results.</p>
+          </div>
+        </article>
+
+        <article class="preview-card" id="xPreview">
+          <header class="preview-label">
+            <span class="platform-dot x"></span>
+            X / Twitter Card
+          </header>
+          <div class="x-card">
+            <div class="x-image-wrap" id="xImageWrap">
+              <img id="xImage" class="x-image hidden" alt="" hidden>
+              <div id="xImagePlaceholder" class="x-image-placeholder">1200 × 630 image preview</div>
+            </div>
+            <div class="x-body">
+              <p class="x-domain" id="xDomain">yourname.github.io</p>
+              <h3 class="x-title" id="xTitle">Your page title appears here</h3>
+              <p class="x-desc" id="xDesc">Description text for the card preview.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="preview-card" id="linkedinPreview">
+          <header class="preview-label">
+            <span class="platform-dot linkedin"></span>
+            LinkedIn
+          </header>
+          <div class="linkedin-card">
+            <div class="linkedin-image-wrap" id="linkedinImageWrap">
+              <img id="linkedinImage" class="linkedin-image hidden" alt="" hidden>
+              <div id="linkedinImagePlaceholder" class="linkedin-image-placeholder">Image preview</div>
+            </div>
+            <div class="linkedin-body">
+              <h3 class="linkedin-title" id="linkedinTitle">Your page title appears here</h3>
+              <p class="linkedin-domain" id="linkedinDomain">yourname.github.io</p>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>No data leaves your browser. Paste, preview, share with confidence.</p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
