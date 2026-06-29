@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Meta Preview Lab — preview links on Google, X, LinkedIn, Facebook, Discord, and Slack before you share.">
+  <meta name="description" content="Meta Preview Lab — score your link's share readiness and preview on Google, X, LinkedIn, and more.">
   <title>Meta Preview Lab</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +17,7 @@
         <span class="brand-badge">MPL</span>
         <div>
           <h1>Meta Preview Lab</h1>
-          <p class="tagline">Preview your link before you share it</p>
+          <p class="tagline">Is your link ready to share?</p>
         </div>
       </div>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme" title="Toggle theme">
@@ -49,8 +49,48 @@
           </ul>
         </div>
 
+        <div class="readiness-panel">
+          <div class="score-display">
+            <div id="scoreRing" class="score-ring" aria-hidden="true">
+              <svg viewBox="0 0 80 80">
+                <circle class="score-ring-bg" cx="40" cy="40" r="34"></circle>
+                <circle class="score-ring-fill" cx="40" cy="40" r="34"></circle>
+              </svg>
+              <span id="readinessScore" class="score-value">—</span>
+            </div>
+            <div class="score-copy">
+              <p class="score-label">Share readiness</p>
+              <p id="readinessVerdict" class="score-verdict">Fetch a URL or fill in the fields to score your link.</p>
+              <p id="scoreDelta" class="score-delta hidden"></p>
+            </div>
+          </div>
+        </div>
+
+        <div id="comparePanel" class="compare-panel hidden">
+          <h3>Live site vs your draft</h3>
+          <div class="compare-table-wrap">
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Live (fetched)</th>
+                  <th>Your draft</th>
+                </tr>
+              </thead>
+              <tbody id="compareBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="fix-panel">
+          <h3>Fix checklist</h3>
+          <ul id="fixList" class="fix-list">
+            <li class="fix-empty">Your action items will appear here.</li>
+          </ul>
+        </div>
+
         <div class="field">
-          <label for="pageTitle">Page title</label>
+          <label for="pageTitle">Page title <span class="field-badge">Draft</span></label>
           <input type="text" id="pageTitle" placeholder="My Awesome Project — Built in 2 Hours" maxlength="120">
           <span id="titleCount" class="char-count">0 / 60 recommended</span>
         </div>
@@ -70,10 +110,19 @@
 
         <div class="og-block">
           <div class="og-header">
-            <h3>Open Graph tags</h3>
-            <button id="copyOg" class="btn btn-sm" type="button">Copy tags</button>
+            <h3>Full &lt;head&gt; snippet</h3>
+            <button id="copyHead" class="btn btn-sm" type="button">Copy snippet</button>
           </div>
-          <pre id="ogSnippet" class="og-snippet" aria-live="polite"></pre>
+          <pre id="headSnippet" class="og-snippet" aria-live="polite"></pre>
+        </div>
+
+        <div class="steps-panel">
+          <h3>How to fix your site</h3>
+          <ol class="steps-list">
+            <li><strong>Copy</strong> the head snippet above</li>
+            <li><strong>Paste</strong> it inside <code>&lt;head&gt;</code> in your <code>index.html</code></li>
+            <li><strong>Push</strong> to GitHub, then click Fetch again to verify</li>
+          </ol>
         </div>
       </section>
 
@@ -205,6 +254,7 @@
 
   <script src="js/fetch-meta.js"></script>
   <script src="js/image-check.js"></script>
+  <script src="js/readiness.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

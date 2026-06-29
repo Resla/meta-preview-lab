@@ -6,17 +6,18 @@ Perfect for polishing READMEs, portfolio pages, and blog posts before posting on
 
 ## Features
 
-- **Fetch from URL** — paste a live link and pull real `og:*` tags from the page
-- **Metadata audit** — see what's found, missing, or too long (title, description, image, Twitter card)
-- **Live Google search snippet** preview with title, URL breadcrumb, and description
-- **X / Twitter card** preview with large-image layout
-- **LinkedIn link preview** mockup
-- **Facebook link preview** mockup
-- **Discord embed** preview with accent bar and image
-- **Slack unfurl** preview
-- **Preview filters** — All, Google, Social, Chat
+### Phase 1 — Share readiness
+- **Share Readiness Score (0–100)** — instant verdict on whether your link is ready to post
+- **Fix checklist** — plain-English action items, not just technical audit lines
+- **Live vs draft comparison** — see what changed after you fetch and edit
+- **Full `<head>` snippet** — copy-paste ready block with title, description, OG, and Twitter tags
+- **3-step fix guide** — copy → paste in index.html → push and re-fetch
+
+### Core tools
+- **Fetch from URL** — pull real `og:*` tags from any public page
+- **Metadata audit** — technical pass/warn/fail for each tag
+- **6 platform previews** — Google, X, LinkedIn, Facebook, Discord, Slack
 - **Image dimension checker** — validates size and 1.91:1 aspect ratio
-- **Open Graph tag generator** — copy-paste ready `<meta>` tags
 - **Character counters** with SEO-friendly limits (60 / 160)
 - **Dark & light mode**
 

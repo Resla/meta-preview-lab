@@ -401,6 +401,233 @@ body::before {
 .audit-extra.audit-warn { color: #ffa94d; }
 .audit-extra.audit-error { color: #ff6b6b; }
 
+.readiness-panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.score-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.score-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-ring-bg,
+.score-ring-fill {
+  fill: none;
+  stroke-width: 6;
+}
+
+.score-ring-bg {
+  stroke: var(--border);
+}
+
+.score-ring-fill {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-dasharray: 213.6;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
+}
+
+.score-ring-fill.score-high { stroke: #40c057; }
+.score-ring-fill.score-mid { stroke: #ffa94d; }
+.score-ring-fill.score-low { stroke: #ff6b6b; }
+
+.score-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.score-verdict {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.score-delta {
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-top: 0.35rem;
+  font-weight: 500;
+}
+
+.score-delta.hidden {
+  display: none;
+}
+
+.compare-panel,
+.fix-panel,
+.steps-panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.compare-panel.hidden {
+  display: none;
+}
+
+.compare-panel h3,
+.fix-panel h3,
+.steps-panel h3 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.compare-table-wrap {
+  overflow-x: auto;
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 0.45rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.compare-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.6875rem;
+}
+
+.compare-changed td:last-child {
+  background: var(--accent-soft);
+}
+
+.compare-badge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.fix-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.fix-empty {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.fix-item {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  font-size: 0.8125rem;
+  padding: 0.6rem 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.fix-item.fix-done {
+  border-color: rgba(64, 192, 87, 0.35);
+  background: rgba(64, 192, 87, 0.08);
+}
+
+.fix-icon {
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.fix-done .fix-icon {
+  color: #40c057;
+}
+
+.fix-item strong {
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.fix-item p {
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.field-badge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.steps-list {
+  padding-left: 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.steps-list li {
+  margin-bottom: 0.5rem;
+}
+
+.steps-list code {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  background: var(--surface);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
 .og-snippet {
   font-family: var(--mono);
   font-size: 0.72rem;

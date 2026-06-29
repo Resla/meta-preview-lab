@@ -1,4 +1,5 @@
 const THEME_KEY = "meta-preview-lab-theme";
+const RING_CIRCUMFERENCE = 2 * Math.PI * 34;
 
 const pageTitle = document.getElementById("pageTitle");
 const pageUrl = document.getElementById("pageUrl");
@@ -7,12 +8,19 @@ const imageUrl = document.getElementById("imageUrl");
 const titleCount = document.getElementById("titleCount");
 const descCount = document.getElementById("descCount");
 const imageDimensions = document.getElementById("imageDimensions");
-const ogSnippet = document.getElementById("ogSnippet");
-const copyOg = document.getElementById("copyOg");
+const headSnippet = document.getElementById("headSnippet");
+const copyHead = document.getElementById("copyHead");
 const fetchBtn = document.getElementById("fetchBtn");
 const fetchStatus = document.getElementById("fetchStatus");
 const auditList = document.getElementById("auditList");
 const auditSummary = document.getElementById("auditSummary");
+const readinessScore = document.getElementById("readinessScore");
+const readinessVerdict = document.getElementById("readinessVerdict");
+const scoreDelta = document.getElementById("scoreDelta");
+const scoreRingFill = document.querySelector(".score-ring-fill");
+const comparePanel = document.getElementById("comparePanel");
+const compareBody = document.getElementById("compareBody");
+const fixList = document.getElementById("fixList");
 const themeToggle = document.getElementById("themeToggle");
 const toast = document.getElementById("toast");
 
@@ -25,7 +33,8 @@ const DEFAULTS = {
 };
 
 const inputs = [pageTitle, pageUrl, pageDesc, imageUrl];
-let lastFetchSource = null;
+let liveSnapshot = null;
+let liveScore = null;
 
 function init() {
   loadTheme();
@@ -40,7 +49,7 @@ function prefillDemo() {
 
 function bindEvents() {
   inputs.forEach((input) => input.addEventListener("input", onInputChange));
-  copyOg.addEventListener("click", copyOgTags);
+  copyHead.addEventListener("click", copyHeadSnippet);
   fetchBtn.addEventListener("click", handleFetch);
   themeToggle.addEventListener("click", toggleTheme);
 
@@ -65,17 +74,12 @@ function bindEvents() {
 }
 
 function onInputChange() {
-  lastFetchSource = null;
   updateFetchStatus("");
   updateAll();
 }
 
-function getAuditItems() {
-  if (lastFetchSource) {
-    return buildAuditItems(lastFetchSource);
-  }
-
-  return buildAuditFromForm(
+function getDraftMeta() {
+  return formToMeta(
     pageTitle.value.trim(),
     pageDesc.value.trim(),
     imageUrl.value.trim(),
@@ -97,11 +101,23 @@ function updateAll() {
   updateFacebook(title, desc, domain, image);
   updateDiscord(title, desc, image);
   updateSlack(title, desc, domain, image);
-  updateOgSnippet(title, desc, url, image);
+  updateHeadSnippet(title, desc, url, image);
 
-  runImageCheck(image, (dimensions, status) => {
-    updateImageDimensionHint(status);
-    renderAudit(augmentAuditWithImageSize(getAuditItems(), dimensions));
+  runImageCheck(image, (dimensions) => {
+    updateImageDimensionHint(imageDimensionStatus(dimensions));
+
+    const draftMeta = getDraftMeta();
+    const draftResult = computeReadinessScore(draftMeta, dimensions);
+
+    renderScore(draftResult);
+    renderFixList(buildFixChecklist(draftMeta, dimensions));
+    renderCompare(draftMeta);
+    renderAudit(augmentAuditWithImageSize(buildAuditFromForm(
+      pageTitle.value.trim(),
+      pageDesc.value.trim(),
+      image,
+      url
+    ), dimensions));
   });
 }
 
@@ -120,12 +136,23 @@ async function handleFetch() {
   try {
     const metadata = await fetchMetadata(url);
 
+    liveSnapshot = {
+      title: metadata.title,
+      description: metadata.description,
+      image: metadata.image,
+      url: metadata.url,
+      raw: { ...metadata.raw },
+    };
+
     pageTitle.value = metadata.title;
     pageDesc.value = metadata.description;
     pageUrl.value = metadata.url;
     imageUrl.value = metadata.image;
 
-    lastFetchSource = metadata;
+    const liveMeta = liveMetaFromFetch(metadata);
+    const dimensions = await checkImageDimensions(metadata.image);
+    liveScore = computeReadinessScore(liveMeta, dimensions).score;
+
     updateFetchStatus(`Fetched from ${new URL(metadata.url).hostname}`);
     updateAll();
     showToast("Live metadata loaded!");
@@ -137,6 +164,73 @@ async function handleFetch() {
   } finally {
     setFetchLoading(false);
   }
+}
+
+function renderScore(result) {
+  readinessScore.textContent = result.score;
+  readinessVerdict.textContent = result.verdict;
+
+  const offset = RING_CIRCUMFERENCE * (1 - result.score / 100);
+  scoreRingFill.style.strokeDashoffset = offset;
+  scoreRingFill.classList.remove("score-low", "score-mid", "score-high");
+  if (result.score >= 80) scoreRingFill.classList.add("score-high");
+  else if (result.score >= 50) scoreRingFill.classList.add("score-mid");
+  else scoreRingFill.classList.add("score-low");
+
+  if (liveSnapshot && liveScore !== null) {
+    const delta = result.score - liveScore;
+    if (delta > 0) {
+      scoreDelta.textContent = `↑ +${delta} pts from live site (${liveScore} → ${result.score})`;
+      scoreDelta.classList.remove("hidden");
+    } else if (delta < 0) {
+      scoreDelta.textContent = `↓ ${delta} pts from live site (${liveScore} → ${result.score})`;
+      scoreDelta.classList.remove("hidden");
+    } else {
+      scoreDelta.textContent = `Same as live site (${liveScore} pts)`;
+      scoreDelta.classList.remove("hidden");
+    }
+  } else {
+    scoreDelta.classList.add("hidden");
+  }
+}
+
+function renderCompare(draftMeta) {
+  if (!liveSnapshot) {
+    comparePanel.classList.add("hidden");
+    return;
+  }
+
+  comparePanel.classList.remove("hidden");
+  const rows = compareFields(liveSnapshot, draftMeta);
+
+  compareBody.innerHTML = rows
+    .map(
+      (row) => `<tr class="${row.changed ? "compare-changed" : ""}">
+        <td>${escapeHtml(row.label)}</td>
+        <td>${escapeHtml(row.live)}</td>
+        <td>${escapeHtml(row.draft)}${row.changed ? ' <span class="compare-badge">edited</span>' : ""}</td>
+      </tr>`
+    )
+    .join("");
+}
+
+function renderFixList(fixes) {
+  if (!fixes.length) {
+    fixList.innerHTML = '<li class="fix-empty">Your action items will appear here.</li>';
+    return;
+  }
+
+  fixList.innerHTML = fixes
+    .map(
+      (item) => `<li class="fix-item ${item.done ? "fix-done" : ""}">
+        <span class="fix-icon" aria-hidden="true">${item.done ? "✓" : "→"}</span>
+        <div>
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.detail)}</p>
+        </div>
+      </li>`
+    )
+    .join("");
 }
 
 function updateImageDimensionHint(status) {
@@ -179,11 +273,9 @@ function renderAudit(items) {
   const warns = items.filter((i) => i.level === "warn").length;
   const oks = items.filter((i) => i.level === "ok").length;
 
-  if (lastFetchSource) {
-    auditSummary.textContent = `${oks} passed · ${warns} warnings · ${errors} missing`;
-  } else {
-    auditSummary.textContent = `Draft check — ${oks} ok · ${warns} warnings · ${errors} issues`;
-  }
+  auditSummary.textContent = liveSnapshot
+    ? `Draft audit — ${oks} ok · ${warns} warnings · ${errors} issues`
+    : `${oks} passed · ${warns} warnings · ${errors} missing`;
 
   auditList.innerHTML = items
     .map((item) => {
@@ -318,37 +410,8 @@ function getPlaceholderText(platform) {
   return labels[platform] || "Image preview";
 }
 
-function updateOgSnippet(title, desc, url, image) {
-  const lines = [
-    `<meta property="og:title" content="${escapeAttr(title)}">`,
-    `<meta property="og:description" content="${escapeAttr(desc)}">`,
-    `<meta property="og:url" content="${escapeAttr(url)}">`,
-    `<meta property="og:type" content="website">`,
-  ];
-
-  if (image) {
-    lines.push(`<meta property="og:image" content="${escapeAttr(image)}">`);
-  }
-
-  lines.push(
-    `<meta name="twitter:card" content="${image ? "summary_large_image" : "summary"}">`,
-    `<meta name="twitter:title" content="${escapeAttr(title)}">`,
-    `<meta name="twitter:description" content="${escapeAttr(desc)}">`
-  );
-
-  if (image) {
-    lines.push(`<meta name="twitter:image" content="${escapeAttr(image)}">`);
-  }
-
-  ogSnippet.textContent = lines.join("\n");
-}
-
-function escapeAttr(str) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+function updateHeadSnippet(title, desc, url, image) {
+  headSnippet.textContent = buildHeadSnippet(title, desc, url, image);
 }
 
 function escapeHtml(str) {
@@ -357,10 +420,10 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-async function copyOgTags() {
+async function copyHeadSnippet() {
   try {
-    await navigator.clipboard.writeText(ogSnippet.textContent);
-    showToast("Open Graph tags copied!");
+    await navigator.clipboard.writeText(headSnippet.textContent);
+    showToast("Head snippet copied!");
   } catch {
     showToast("Copy failed — select text manually");
   }
