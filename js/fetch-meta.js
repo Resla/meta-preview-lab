@@ -1,4 +1,16 @@
+const PROXY_KEY = "meta-preview-lab-proxy";
+
 const CORS_PROXIES = [
+  {
+    name: "corsproxy",
+    buildUrl: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    parse: async (response) => response.text(),
+  },
+  {
+    name: "codetabs",
+    buildUrl: (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+    parse: async (response) => response.text(),
+  },
   {
     name: "allorigins",
     buildUrl: (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
@@ -7,40 +19,63 @@ const CORS_PROXIES = [
       return data.contents || "";
     },
   },
-  {
-    name: "corsproxy",
-    buildUrl: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    parse: async (response) => response.text(),
-  },
 ];
 
-async function fetchPageHtml(urlString) {
-  let lastError = null;
+const PROXY_TIMEOUT_MS = 8000;
 
-  for (const proxy of CORS_PROXIES) {
-    try {
-      const response = await fetch(proxy.buildUrl(urlString), {
-        signal: AbortSignal.timeout(15000),
-      });
+function orderProxies() {
+  const preferred = localStorage.getItem(PROXY_KEY);
+  const proxies = [...CORS_PROXIES];
 
-      if (!response.ok) {
-        lastError = new Error(`Proxy ${proxy.name} returned HTTP ${response.status}`);
-        continue;
-      }
+  if (!preferred) return proxies;
 
-      const html = await proxy.parse(response);
+  const index = proxies.findIndex((proxy) => proxy.name === preferred);
+  if (index <= 0) return proxies;
 
-      if (html && html.length > 0) {
-        return html;
-      }
+  const [match] = proxies.splice(index, 1);
+  proxies.unshift(match);
+  return proxies;
+}
 
-      lastError = new Error(`Proxy ${proxy.name} returned empty content`);
-    } catch (error) {
-      lastError = error;
-    }
+async function tryProxy(proxy, urlString) {
+  const response = await fetch(proxy.buildUrl(urlString), {
+    signal: AbortSignal.timeout(PROXY_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    throw new Error(`${proxy.name} returned HTTP ${response.status}`);
   }
 
-  throw lastError || new Error("Could not fetch the page — try again or paste metadata manually");
+  const html = await proxy.parse(response);
+
+  if (!html || html.length === 0) {
+    throw new Error(`${proxy.name} returned empty content`);
+  }
+
+  localStorage.setItem(PROXY_KEY, proxy.name);
+  return html;
+}
+
+async function fetchPageHtml(urlString) {
+  const proxies = orderProxies();
+
+  const attempts = proxies.map(async (proxy) => {
+    try {
+      return await tryProxy(proxy, urlString);
+    } catch (error) {
+      throw new Error(`${proxy.name}: ${error.message}`);
+    }
+  });
+
+  try {
+    return await Promise.any(attempts);
+  } catch (error) {
+    if (error instanceof AggregateError) {
+      const details = error.errors.map((e) => e.message).join("; ");
+      throw new Error(`Fetch timed out — ${details}`);
+    }
+    throw error;
+  }
 }
 
 function getMetaContent(doc, selectors) {

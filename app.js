@@ -35,6 +35,7 @@ const DEFAULTS = {
 const inputs = [pageTitle, pageUrl, pageDesc, imageUrl];
 let liveSnapshot = null;
 let liveScore = null;
+let captureLiveScore = false;
 
 function init() {
   loadTheme();
@@ -109,6 +110,20 @@ function updateAll() {
     const draftMeta = getDraftMeta();
     const draftResult = computeReadinessScore(draftMeta, dimensions);
 
+    if (captureLiveScore && liveSnapshot) {
+      liveScore = computeReadinessScore(
+        liveMetaFromFetch({
+          title: liveSnapshot.title,
+          description: liveSnapshot.description,
+          image: liveSnapshot.image,
+          url: liveSnapshot.url,
+          raw: liveSnapshot.raw,
+        }),
+        dimensions
+      ).score;
+      captureLiveScore = false;
+    }
+
     renderScore(draftResult);
     renderFixList(buildFixChecklist(draftMeta, dimensions));
     renderCompare(draftMeta);
@@ -131,7 +146,7 @@ async function handleFetch() {
   }
 
   setFetchLoading(true);
-  updateFetchStatus("Fetching live metadata…");
+  updateFetchStatus("Fetching live metadata (usually 2–5 sec)…");
 
   try {
     const metadata = await fetchMetadata(url);
@@ -149,9 +164,8 @@ async function handleFetch() {
     pageUrl.value = metadata.url;
     imageUrl.value = metadata.image;
 
-    const liveMeta = liveMetaFromFetch(metadata);
-    const dimensions = await checkImageDimensions(metadata.image);
-    liveScore = computeReadinessScore(liveMeta, dimensions).score;
+    liveScore = null;
+    captureLiveScore = true;
 
     updateFetchStatus(`Fetched from ${new URL(metadata.url).hostname}`);
     updateAll();
