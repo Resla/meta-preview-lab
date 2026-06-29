@@ -6,6 +6,7 @@ const pageDesc = document.getElementById("pageDesc");
 const imageUrl = document.getElementById("imageUrl");
 const titleCount = document.getElementById("titleCount");
 const descCount = document.getElementById("descCount");
+const imageDimensions = document.getElementById("imageDimensions");
 const ogSnippet = document.getElementById("ogSnippet");
 const copyOg = document.getElementById("copyOg");
 const fetchBtn = document.getElementById("fetchBtn");
@@ -29,8 +30,8 @@ let lastFetchSource = null;
 function init() {
   loadTheme();
   prefillDemo();
-  updateAll();
   bindEvents();
+  updateAll();
 }
 
 function prefillDemo() {
@@ -49,12 +50,37 @@ function bindEvents() {
       handleFetch();
     }
   });
+
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".filter-btn").forEach((b) => {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("active");
+      btn.setAttribute("aria-selected", "true");
+      applyPreviewFilter(btn.dataset.filter);
+    });
+  });
 }
 
 function onInputChange() {
   lastFetchSource = null;
   updateFetchStatus("");
   updateAll();
+}
+
+function getAuditItems() {
+  if (lastFetchSource) {
+    return buildAuditItems(lastFetchSource);
+  }
+
+  return buildAuditFromForm(
+    pageTitle.value.trim(),
+    pageDesc.value.trim(),
+    imageUrl.value.trim(),
+    pageUrl.value.trim()
+  );
 }
 
 function updateAll() {
@@ -68,8 +94,15 @@ function updateAll() {
   updateGoogle(title, desc, breadcrumb);
   updateX(title, desc, domain, image);
   updateLinkedIn(title, domain, image);
+  updateFacebook(title, desc, domain, image);
+  updateDiscord(title, desc, image);
+  updateSlack(title, desc, domain, image);
   updateOgSnippet(title, desc, url, image);
-  renderAudit(buildAuditFromForm(pageTitle.value.trim(), pageDesc.value.trim(), image, url));
+
+  runImageCheck(image, (dimensions, status) => {
+    updateImageDimensionHint(status);
+    renderAudit(augmentAuditWithImageSize(getAuditItems(), dimensions));
+  });
 }
 
 async function handleFetch() {
@@ -94,7 +127,6 @@ async function handleFetch() {
 
     lastFetchSource = metadata;
     updateFetchStatus(`Fetched from ${new URL(metadata.url).hostname}`);
-    renderAudit(buildAuditItems(metadata));
     updateAll();
     showToast("Live metadata loaded!");
   } catch (error) {
@@ -105,6 +137,25 @@ async function handleFetch() {
   } finally {
     setFetchLoading(false);
   }
+}
+
+function updateImageDimensionHint(status) {
+  if (!status) {
+    imageDimensions.textContent = "";
+    imageDimensions.className = "field-hint image-dimensions";
+    return;
+  }
+
+  imageDimensions.textContent = status.text;
+  imageDimensions.className = `field-hint image-dimensions dim-${status.level}`;
+}
+
+function applyPreviewFilter(filter) {
+  document.querySelectorAll(".preview-card").forEach((card) => {
+    const platform = card.dataset.platform;
+    const show = filter === "all" || platform === filter;
+    card.classList.toggle("hidden", !show);
+  });
 }
 
 function setFetchLoading(loading) {
@@ -118,7 +169,8 @@ function updateFetchStatus(message) {
 
 function renderAudit(items) {
   if (!items.length) {
-    auditList.innerHTML = '<li class="audit-empty">Fetch a URL to audit its live metadata, or fill in the fields to check your draft.</li>';
+    auditList.innerHTML =
+      '<li class="audit-empty">Fetch a URL to audit its live metadata, or fill in the fields to check your draft.</li>';
     auditSummary.textContent = "";
     return;
   }
@@ -205,6 +257,26 @@ function updateLinkedIn(title, domain, image) {
   setPreviewImage("linkedin", image);
 }
 
+function updateFacebook(title, desc, domain, image) {
+  document.getElementById("facebookDomain").textContent = domain.toUpperCase();
+  document.getElementById("facebookTitle").textContent = truncate(title, 80);
+  document.getElementById("facebookDesc").textContent = truncate(desc, 110);
+  setPreviewImage("facebook", image);
+}
+
+function updateDiscord(title, desc, image) {
+  document.getElementById("discordTitle").textContent = truncate(title, 256);
+  document.getElementById("discordDesc").textContent = truncate(desc, 200);
+  setPreviewImage("discord", image);
+}
+
+function updateSlack(title, desc, domain, image) {
+  document.getElementById("slackTitle").textContent = truncate(title, 80);
+  document.getElementById("slackDesc").textContent = truncate(desc, 140);
+  document.getElementById("slackDomain").textContent = domain;
+  setPreviewImage("slack", image);
+}
+
 function setPreviewImage(platform, src) {
   const img = document.getElementById(`${platform}Image`);
   const placeholder = document.getElementById(`${platform}ImagePlaceholder`);
@@ -213,7 +285,7 @@ function setPreviewImage(platform, src) {
     img.hidden = true;
     img.classList.add("hidden");
     placeholder.hidden = false;
-    placeholder.textContent = platform === "x" ? "1200 × 630 image preview" : "Image preview";
+    placeholder.textContent = getPlaceholderText(platform);
     img.removeAttribute("src");
     return;
   }
@@ -233,6 +305,17 @@ function setPreviewImage(platform, src) {
 
   img.src = src;
   img.alt = pageTitle.value.trim() || "Preview image";
+}
+
+function getPlaceholderText(platform) {
+  const labels = {
+    x: "1200 × 630 image preview",
+    linkedin: "Image preview",
+    facebook: "Image preview",
+    discord: "Embed image",
+    slack: "Unfurl image",
+  };
+  return labels[platform] || "Image preview";
 }
 
 function updateOgSnippet(title, desc, url, image) {

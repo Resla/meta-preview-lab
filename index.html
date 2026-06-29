@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Meta Preview Lab — see how your link looks on Google, X, and LinkedIn before you share.">
+  <meta name="description" content="Meta Preview Lab — preview links on Google, X, LinkedIn, Facebook, Discord, and Slack before you share.">
   <title>Meta Preview Lab</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,7 +64,8 @@
         <div class="field">
           <label for="imageUrl">Image URL <span class="optional">(optional)</span></label>
           <input type="url" id="imageUrl" placeholder="https://example.com/preview.png">
-          <p class="field-hint">Used for X and LinkedIn card previews. 1200×630 works best.</p>
+          <p id="imageDimensions" class="field-hint image-dimensions"></p>
+          <p class="field-hint">Used for social and chat embed previews. 1200×630 works best.</p>
         </div>
 
         <div class="og-block">
@@ -77,9 +78,18 @@
       </section>
 
       <section class="previews" aria-label="Platform previews">
-        <h2>Live previews</h2>
+        <div class="previews-top">
+          <h2>Live previews</h2>
+          <div class="preview-filters" role="tablist">
+            <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">All</button>
+            <button class="filter-btn" data-filter="google" role="tab">Google</button>
+            <button class="filter-btn" data-filter="social" role="tab">Social</button>
+            <button class="filter-btn" data-filter="chat" role="tab">Chat</button>
+          </div>
+        </div>
 
-        <article class="preview-card" id="googlePreview">
+        <div class="preview-grid">
+        <article class="preview-card" data-platform="google" id="googlePreview">
           <header class="preview-label">
             <span class="platform-dot google"></span>
             Google Search
@@ -91,7 +101,7 @@
           </div>
         </article>
 
-        <article class="preview-card" id="xPreview">
+        <article class="preview-card" data-platform="social" id="xPreview">
           <header class="preview-label">
             <span class="platform-dot x"></span>
             X / Twitter Card
@@ -109,7 +119,7 @@
           </div>
         </article>
 
-        <article class="preview-card" id="linkedinPreview">
+        <article class="preview-card" data-platform="social" id="linkedinPreview">
           <header class="preview-label">
             <span class="platform-dot linkedin"></span>
             LinkedIn
@@ -125,6 +135,61 @@
             </div>
           </div>
         </article>
+
+        <article class="preview-card" data-platform="social" id="facebookPreview">
+          <header class="preview-label">
+            <span class="platform-dot facebook"></span>
+            Facebook
+          </header>
+          <div class="facebook-card">
+            <div class="facebook-image-wrap">
+              <img id="facebookImage" class="facebook-image hidden" alt="" hidden>
+              <div id="facebookImagePlaceholder" class="facebook-image-placeholder">Image preview</div>
+            </div>
+            <div class="facebook-body">
+              <p class="facebook-domain" id="facebookDomain">YOURNAME.GITHUB.IO</p>
+              <h3 class="facebook-title" id="facebookTitle">Your page title appears here</h3>
+              <p class="facebook-desc" id="facebookDesc">Description text for the link preview.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="preview-card" data-platform="chat" id="discordPreview">
+          <header class="preview-label">
+            <span class="platform-dot discord"></span>
+            Discord Embed
+          </header>
+          <div class="discord-embed">
+            <div class="discord-accent"></div>
+            <div class="discord-content">
+              <h3 class="discord-title" id="discordTitle">Your page title appears here</h3>
+              <p class="discord-desc" id="discordDesc">Description text shown inside the embed.</p>
+              <div class="discord-image-wrap">
+                <img id="discordImage" class="discord-image hidden" alt="" hidden>
+                <div id="discordImagePlaceholder" class="discord-image-placeholder">Embed image</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="preview-card" data-platform="chat" id="slackPreview">
+          <header class="preview-label">
+            <span class="platform-dot slack"></span>
+            Slack Unfurl
+          </header>
+          <div class="slack-card">
+            <div class="slack-image-wrap">
+              <img id="slackImage" class="slack-image hidden" alt="" hidden>
+              <div id="slackImagePlaceholder" class="slack-image-placeholder">Unfurl image</div>
+            </div>
+            <div class="slack-body">
+              <h3 class="slack-title" id="slackTitle">Your page title appears here</h3>
+              <p class="slack-desc" id="slackDesc">Description text for the unfurled link.</p>
+              <p class="slack-domain" id="slackDomain">yourname.github.io</p>
+            </div>
+          </div>
+        </article>
+        </div>
       </section>
     </main>
 
@@ -136,6 +201,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="js/fetch-meta.js"></script>
+  <script src="js/image-check.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

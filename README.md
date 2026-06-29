@@ -11,6 +11,11 @@ Perfect for polishing READMEs, portfolio pages, and blog posts before posting on
 - **Live Google search snippet** preview with title, URL breadcrumb, and description
 - **X / Twitter card** preview with large-image layout
 - **LinkedIn link preview** mockup
+- **Facebook link preview** mockup
+- **Discord embed** preview with accent bar and image
+- **Slack unfurl** preview
+- **Preview filters** — All, Google, Social, Chat
+- **Image dimension checker** — validates size and 1.91:1 aspect ratio
 - **Open Graph tag generator** — copy-paste ready `<meta>` tags
 - **Character counters** with SEO-friendly limits (60 / 160)
 - **Dark & light mode**
